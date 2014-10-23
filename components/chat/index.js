@@ -11,7 +11,7 @@ Chat.prototype.init = function (model) {
   var $messagesQuery = model.root.query('messages', {});
   model.ref('messages', $messagesQuery);
   model.ref('users', model.root.filter('users', 'online'));
-}
+};
 
 Chat.prototype.message = function (e) {
   var model = this.model;
@@ -22,11 +22,11 @@ Chat.prototype.message = function (e) {
       var message = {
         text: text,
         userId: model.root.get('_session.userId')
-      }
+      };
       model.add('messages', message);
     }
   }
-}
+};
 
 Chat.prototype.username = function (userId) {
   var model = this.model;
@@ -36,8 +36,8 @@ Chat.prototype.username = function (userId) {
   model.set('text', text);
   this.text.focus();
   this.text.setSelectionRange(text.length, text.length);
-}
+};
 
 Chat.prototype.date = function (date) {
   return moment(date).format('DD.MM.YY, H:mm');
-}
+};

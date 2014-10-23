@@ -20,7 +20,7 @@ module.exports = {
         done();
       })
     },
-    successRedirect: '/chat',
+    successRedirect: '/',
     failureRedirect: '/'
   },
   strategies: {
@@ -42,4 +42,4 @@ module.exports = {
     avatar: true,
     online: true
   }
-}
+};

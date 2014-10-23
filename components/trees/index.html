@@ -1,0 +1,99 @@
+<Title:>
+    {{_page.todoName}}
+
+<index:>
+    <div>
+        <!--<view name="derby-flash"></view>-->
+        {{if #root._session.loggedIn}}
+        <view name="trees"></view>
+        {{else}}
+        请 <a href="/auth/github">登录</a>
+        {{/if}}
+
+        <!--<datepicker active="{{post.date}}"></datepicker>-->
+        <!--<tabs selected-index="{{widgets.data.currentTab}}">
+            <pane title="One">
+                Stuff'n
+            </pane>
+            <pane title="Two">
+                More stuff
+            </pane>
+        </tabs>-->
+    </div>
+    <div>
+        <modal as="modalDialog">
+            <title>
+                <input value="{{_page.editNode.text}}" placeholder="输入名称"/>
+                &nbsp;
+                <select on-change="selectType($event)">
+                    {{each _page.nodeTypes as #type}}
+                    <option selected="{{_page.editNode.type==#type}}" value="{{#type}}">{{#type}}</option>
+                    {{/}}
+                </select>
+            </title>
+
+            {{if _page.editNode.type=='功能'}}
+                <view name="feature-dlg"></view>
+            {{else}}
+                <view name="task-dlg"></view>
+            {{/if}}
+
+            <!--<action class="btn-primary" name='ok' autofocus default>确定</action>-->
+            <!--<action name='cancel'>取消</action>-->
+            <action value="{{insertParent(_page.editNode.id)}}">上+</action>
+            <action value="{{insertChild(_page.editNode.id)}}">下+</action>
+            <action value="{{addChild(_page.editNode.id)}}">子+</action>
+            <action value="{{setParent()}}">父=</action>
+            <action value="{{delNode(_page.editNode.id)}}">删除</action>
+        </modal>
+    </div>
+
+<feature-dlg:>
+    <label>
+        重要程度&nbsp;
+        <select>
+            {{each _page.featureImportances as #imp}}
+            <option selected="{{_page.editNode.importance==#imp}}" value="{{#imp}}">{{#imp}}</option>
+            {{/each}}
+        </select>
+    </label>
+
+<task-dlg:>
+    <label>
+        耗时（小时）&nbsp;
+        <input value="{{_page.editNode.estTime}}" placeholder="输入时间（小时）">
+    </label>
+
+<trees:>
+    <button on-click="addRoot()">
+        +根节点
+    </button>
+    <!--<a on-click="clearAll()">
+        clear
+    </a>-->
+    <div class="tree">
+        <ul>
+            {{each todos1 as #node}}
+            {{if !#node.parent && !#node.del}}
+            <li>
+                <view name="node" n="{{getNode(todos1,#node.id)}}"></view>
+            </li>
+            {{/}}
+            {{/}}
+        </ul>
+    </div>
+
+<node:>
+    <!--<a on-click="addChild(@n.id,'fuck')">-->
+    <a on-click="showEdit(@n.id)">
+        {{@n.text}}
+    </a>
+    {{if hasChildren(todos1, @n.id)}}
+    <ul>
+        {{each @n.children as #childnode}}
+        <li>
+            <view name="node" n="{{getNode(todos1,#childnode)}}"></view>
+        </li>
+        {{/}}
+    </ul>
+    {{/}}

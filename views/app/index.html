@@ -1,4 +1,5 @@
 <import: src="./chat">
+<import: src="./tree">
 <import: src="./home">
 <import: src="./compare">
 <import: src="./started">
@@ -51,7 +52,7 @@
     <view name="mainheader"/>
     <view name="{{$render.ns}}"/>
   </div>
-  <view name="mainfooter"/>
+  <!--<view name="mainfooter"/>-->
 
 <mainheader:>
   <div class="navbar navbar-static-top navbar-fixed-top bs-docs-nav" id="top" role="banner">
@@ -67,15 +68,15 @@
       </div>
       <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
         <ul class="nav navbar-nav">
-          <nav-link href="/started" caption="Get Started"></nav-link>
-          <nav-link href="/docs" caption="Docs"></nav-link>
-          <nav-link href="/faq" caption="FAQ"></nav-link>
-          <nav-link href="/resources" caption="Resources"></nav-link>
-          <!--<nav-link href="/compare" caption="Compare"></nav-link>-->
-          <!--<nav-link href="/chat" caption="Chat"></nav-link>-->
+          <nav-link href="/started" caption="开始"></nav-link>
+          <!--<nav-link href="/trees" caption="树"></nav-link>-->
+          <!--<nav-link href="/docs" caption="Docs"></nav-link>-->
+          <!--<nav-link href="/faq" caption="FAQ"></nav-link>-->
+          <!--<nav-link href="/resources" caption="Resources"></nav-link>-->
+          <nav-link href="/compare" caption="Compare"></nav-link>
+          <nav-link href="/chat" caption="Chat"></nav-link>
         </ul>
-        <!--
-        <view name="preferences"/>
+        <!--<view name="preferences"/>-->
         <ul class="nav navbar-nav navbar-right">
           {{if _session.loggedIn}}
             <li>
@@ -85,19 +86,18 @@
                 </p>
             </li>
             <li>
-                <a href="/auth/logout">Logout</a>
+                <a href="/auth/logout">退出</a>
             </li>
           {{else}}
             <li>
-                <a href="/auth/github">Login</a>
+                <a href="/auth/github">登录</a>
             </li>
           {{/}}
         </ul>
-        -->
       </nav>
     </div>
   </div>
-
+<!--
 <mainfooter:>
   <div class="bs-docs-footer footer" role="contentinfo">
     <div class="container">
@@ -126,7 +126,7 @@
 
       <p>Code licensed under <a href="http://opensource.org/licenses/MIT" target="_blank">MIT</a>, documentation under <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank">CC BY 3.0</a>.</p>
     </div>
-  </div>
+  </div>-->
 
 <nav-link: element="nav-link">
   <li class="{{if $render.url === @href}}active{{/}}">
@@ -135,12 +135,12 @@
 
 <markdown: element="markdown">
   <div class="container">
-    <div class="row">
+    <!--<div class="row">
       <div class="col-md-3 sidebar">
         <view name="sidebar"/>
       </div>
       <div class="col-md-9 main">
         <view name="md:{{$render.ns}}"/>
       </div>
-    </div>
+    </div>-->
   </div>

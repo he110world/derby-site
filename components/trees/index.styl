@@ -1,8 +1,5 @@
 
 /* diagram styles */
-body {
-  width: 5000px
-}
 .tree ul {margin: 0; padding: 0;}
 
 .tree ul {
@@ -101,4 +98,111 @@ right connector from last child*/
 .tree li a:hover+ul::before,
 .tree li a:hover+ul ul::before{
     border-color:  #94a0b4;
+}
+
+/*TODO list */
+/*body {
+  font-family: "Lato", arial, sans-serif; }
+
+html {
+  background: #ccc; }*/
+
+/***------ @TODO LIST PAGE ------***/
+.todo-list {
+  background: #ddd;
+  position: relative;
+  -webkit-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), inset 0 0 35px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), inset 0 0 35px rgba(0, 0, 0, 0.1);
+  margin: 0;
+  padding: 0;
+}
+
+.list-box {
+  background-color: #efefef;
+  background: -webkit-gradient(linear, left top, left bottom, from(white), to(#efefef));
+  background: -webkit-linear-gradient(top, white, #efefef);
+  background: -moz-linear-gradient(top, white, #efefef);
+  background: -o-linear-gradient(top, white, #efefef);
+  background: linear-gradient(to bottom, white, #efefef);
+  border-bottom: 1px solid #ccc;
+  padding: 10px 20px;
+  list-style: none;
+  box-sizing: content-box;
+  -moz-box-sizing: content-box;
+  -webkit-box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
+}
+
+.todo-list .list-box span {
+  text-align: right; }
+
+.ui-sortable-helper {
+  cursor: move; }
+
+.list-left {
+  width: 80%;
+  padding-right: 110px; }
+
+.list-left span {
+  margin: 0 0 0 10px;
+  font-size: 13px;
+  line-height: 18px; }
+
+.list-right {
+  position: absolute;
+  width: 130px;
+  right: 15px;
+  display: inline-block; }
+
+.todo-list .list-right .label {
+  position: relative;
+  top: -2px; }
+
+.todo-list .list-box i {
+  margin-right: 3px;
+  margin-top: 1px; }
+
+.todo-list .overdue {
+  background: #eee5e9; }
+
+.check {
+  display: inline;
+  margin: 0 !important;
+  padding: 0;
+  position: relative;
+  top: 2px; }
+
+.todo-list input[type="checkbox"] {
+  width: 18px;
+  height: 18px; }
+
+.todo-list .label-warning {
+  background: #ff892a; }
+
+.todo-list .label-important {
+  background: #cf126e; }
+
+.todo-list .label-info {
+  background: #32aefd; }
+
+.checked {
+  background: #e2e2e2;
+  text-decoration: line-through;
+  color: #666; }
+
+.label {
+  text-transform: uppercase;
+  font-size: 10px;
+  padding: 1px 4px;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.1); }
+
+.label {
+  display: inline;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: .25em
 }

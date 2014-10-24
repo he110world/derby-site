@@ -62,6 +62,14 @@ app.get('/trees/:name', function(page, model, params, next) {
         }
     });
 
+    model.subscribe('tree_config__', function() {
+        var config = model.query('tree_config__', {}).get(todo_name);
+        if (!config.length) {
+            console.log(todo_name);
+            model.set('tree_config__.'+todo_name, {beginDate:null});
+        }
+    });
+
     model.subscribe(todo_name, function () {
         page.params = page.params || {};
         page.params.name = todo_name;

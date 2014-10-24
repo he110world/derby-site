@@ -3,24 +3,28 @@
 
 <index:>
     <div>
-        <!--<view name="derby-flash"></view>-->
-        {{if #root._session.loggedIn}}
-        <view name="trees"></view>
-        {{else}}
-        请 <a href="/auth/github">登录</a>
-        {{/if}}
-
-        <!--<datepicker active="{{post.date}}"></datepicker>-->
-        <!--<tabs selected-index="{{widgets.data.currentTab}}">
-            <pane title="One">
-                Stuff'n
+        <tabs>
+            <pane title="树">
+                {{if #root._session.loggedIn}}
+                <view name="trees"></view>
+                {{else}}
+                请 <a href="/auth/github">登录</a>
+                {{/if}}
             </pane>
-            <pane title="Two">
-                More stuff
+            <pane title="TODO列表">
+                {{if #root._session.loggedIn}}
+                <view name="todo-list"></view>
+                {{else}}
+                请 <a href="/auth/github">登录</a>
+                {{/if}}
             </pane>
-        </tabs>-->
+        </tabs>
     </div>
     <div>
+        <modal as="setBeginDateDialog">
+            <title>设置起始时间</title>
+            <datepicker active="{{_page.beginDate}}" lang="zh-cn"></datepicker>
+        </modal>
         <modal as="modalDialog">
             <title>
                 <input value="{{_page.editNode.text}}" placeholder="输入名称"/>
@@ -45,6 +49,7 @@
             <action value="{{addChild(_page.editNode.id)}}">子+</action>
             <action value="{{setParent()}}">父=</action>
             <action value="{{delNode(_page.editNode.id)}}">删除</action>
+            <action value="{{delAllChildren(_page.editNode.id)}}">子-</action>
         </modal>
     </div>
 
@@ -65,22 +70,35 @@
     </label>
 
 <trees:>
-    <button on-click="addRoot()">
-        +根节点
-    </button>
-    <!--<a on-click="clearAll()">
-        clear
-    </a>-->
-    <div class="tree">
-        <ul>
-            {{each todos1 as #node}}
-            {{if !#node.parent && !#node.del}}
-            <li>
-                <view name="node" n="{{getNode(todos1,#node.id)}}"></view>
-            </li>
-            {{/}}
-            {{/}}
-        </ul>
+    <div>
+        <div>
+            <button on-click="addRoot()">
+                +根节点
+            </button>
+            &nbsp;
+            <button on-click="setBeginDate()">
+                {{if _page.beginDate}}
+                起始时间：{{_page.beginDate}}
+                {{else}}
+                设置起始时间:{{_page.beginDate}}
+                {{/if}}
+            </button>
+        </div>
+
+        <!--<a on-click="clearAll()">
+            clear
+        </a>-->
+        <div class="tree" style="width: 5000px;">
+            <ul>
+                {{each todos1 as #node}}
+                {{if !#node.parent && !#node.del}}
+                <li>
+                    <view name="node" n="{{getNode(todos1,#node.id)}}"></view>
+                </li>
+                {{/}}
+                {{/}}
+            </ul>
+        </div>
     </div>
 
 <node:>
@@ -97,3 +115,43 @@
         {{/}}
     </ul>
     {{/}}
+
+<todo-list:>
+    <ul class="todo-list">
+        {{each getTodoList(todos1) as #todo}}
+        <view name="todo-item" todo={{#todo}} due="{{getOverdue(#todo,_page.beginDate)}}" finished="todos2[#todo.todo.id].finished"></view>
+        {{/each}}
+    </ul>
+
+<todo-item:>
+    <li class="list-box {{if todos2[@todo.todo.id].finished}}checked{{else if lessThanHack(0,@due,_page.beginDate)}}overdue{{/}} ">
+        <span class="list-left">
+          <input class="check" type="checkbox" checked="{{todos2[@todo.todo.id].finished}}"/>            <!---->
+          <span>
+            {{@todo.todo.text}}
+          </span>
+        </span>
+        {{if !todos2[@todo.todo.id].finished}}
+        <span class="list-right">
+          <i class="fa fa-fw {{if lessThanHack(1,@due)}}fa-clock-o{{/}}">
+          </i>
+            {{if lessThanHack(0,@due,_page.beginDate)}}
+                  <span class="label label-important">
+                    Overdue
+                  </span>
+            {{else if equalHack(0,@due,_page.beginDate)}}
+                   <span class="label label-important">
+                    Today
+                  </span>
+            {{else if lessThanHack(4,@due,_page.beginDate)}}
+                  <span class="label label-warning">
+                    Due in {{@due}} days
+                  </span>
+            {{else}}
+                  <span class="label label-info">
+                    Upcoming
+                  </span>
+            {{/}}
+        </span>
+        {{/}}
+    </li>

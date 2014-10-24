@@ -1,3 +1,5 @@
+var moment = require('moment');
+
 module.exports = Tree;
 
 function Tree() {
@@ -9,6 +11,8 @@ var todoName;
 Tree.prototype.init = function (model) {
     todoName = model.root.get('$render.params.name');
     model.ref('todos1', model.root.query(todoName, {}));
+    model.ref('todos2', model.root.at(todoName));
+    model.ref('_page.beginDate', model.root.at('tree_config__.'+todoName+'.beginDate'));
 };
 
 Tree.prototype.addRoot = function(text){
@@ -105,35 +109,191 @@ Tree.prototype.insertParent = function(nodeId, text) {
 };
 
 Tree.prototype.delNode = function(nodeId) {
-    //this.model.removeRef('_page.editNode');
     var model = this.model.root;
-    //model.subscribe(todoName, function() {
-        var node = model.get(todoName+'.'+nodeId);
+    var node = model.get(todoName+'.'+nodeId);
 
-        //所有子节点的父节点=父节点
-        for(var cid in node.children) {
-            model.set(todoName+'.'+node.children[cid]+'.parent', node.parent);
-        }
+    //所有子节点的父节点=父节点
+    for(var cid in node.children) {
+        model.set(todoName+'.'+node.children[cid]+'.parent', node.parent);
+    }
 
-        //从父节点的子节点里删除当前节点
-        if (node.parent) {
-            var path = todoName+'.'+node.parent+'.children';
-            var index = model.get(path).indexOf(nodeId);
-            model.remove(path, index);
+    //从父节点的子节点里删除当前节点
+    if (node.parent) {
+        var path = todoName+'.'+node.parent+'.children';
+        var index = model.get(path).indexOf(nodeId);
+        model.remove(path, index);
 
-            //父节点的子节点+=所有子节点
-            model.insert(path, index, node.children);
-        }
+        //父节点的子节点+=所有子节点
+        model.insert(path, index, node.children);
+    }
 
-        //删除当前节点
-        //model.del(todoName+'.'+nodeId);
-        model.set(todoName+'.'+nodeId+'.del', true);
-        model.set(todoName+'.'+nodeId+'.parent', null);
-    //});
+    //删除当前节点（没有真正删除，只是标记了一下）
+    //model.del(todoName+'.'+nodeId);
+    model.set(todoName+'.'+nodeId+'.del', true);
+    model.set(todoName+'.'+nodeId+'.parent', null);
 };
 
-Tree.prototype.getTodoList = function(selfOnly) {
+Tree.prototype.delAllChildren = function (nodeId) {
+    var model = this.model.root;
+    var node = model.get(todoName+'.'+nodeId);
 
+    //所有子节点的父节点=null
+    for(var cid in node.children) {
+        var path = todoName+'.'+node.children[cid];
+        model.set(path + '.parent', null);
+        model.set(path + '.del', true);
+    }
+
+    //当前节点的子节点=[]
+    model.set(todoName+'.'+nodeId+'.children', []);
+};
+
+Tree.prototype.isOverdue = function (todoInfo) {
+    var beginDate = this.model.get('_page.beginDate');
+    return false;
+};
+
+Tree.prototype.getTodoList = function(todos1) {
+    var todoList = [];
+    var rootIdList = [];
+    var todoDict = {};
+    var totalTime = 0;
+
+    var estimateTime_r = function (id) {
+        var todoInfo = todoDict[id];
+        var todo = todoInfo.todo;
+        if (todo.children.length == 0) {
+            var estTime = parseInt(todo.estTime) || 1;
+            todoInfo.estTime = estTime;
+            return estTime;
+        }
+
+        var totalTime = 0;
+        for (var c in todo.children) {
+            var cid = todo.children[c];
+            totalTime += estimateTime_r(cid);
+        }
+        todoInfo.estTime = totalTime;
+        return totalTime;
+    };
+
+    var calcImportance_r = function (id) {
+        var todoInfo = todoDict[id];
+        var todo = todoInfo.todo;
+        var childrenTotal = 0;
+
+        if (todo.children.length>0) {
+            for (var c in todo.children) {
+                var childInfo = todoDict[todo.children[c]];
+                childrenTotal += childInfo.todo.importance || 1;
+            }
+
+            var k = todoInfo.importance / childrenTotal;
+            for (var c in todo.children) {
+                var cid = todo.children[c];
+                var childInfo = todoDict[cid];
+                var imp = childInfo.todo.importance || 1;
+                childInfo.importance = Math.ceil(k * imp);
+
+                calcImportance_r(cid);
+            }
+        }
+    };
+
+    var genTask_r = function (id) {
+        var children = [];
+        var todoInfo = todoDict[id];
+        var todo = todoInfo.todo;
+
+        if (todo.type == '任务') {
+            totalTime += todo.estTime || 1;
+            todoInfo.totalTime = totalTime;
+            todoList.push(todoInfo);
+        }
+
+        var todoChildren = todo.children;
+        if (todoChildren.length>0) {
+            for(var c in todoChildren) {
+                children.push(todoChildren[c]);
+            }
+            children.sort(sortByWeight);
+
+            for(var c in children) {
+                genTask_r(children[c]);
+            }
+        }
+    };
+
+    var initTodo_r = function (id) {
+        var todoInfo = allTodo[id];
+        var todo = todoInfo.todo;
+        if (!todo.del) {
+            todoDict[id] = todoInfo;
+
+            for (var c in todo.children) {
+                var cid = todo.children[c];
+                initTodo_r(cid);
+            }
+        }
+    };
+
+    var sortByWeight = function (id1, id2) {
+        var todo1 = todoDict[id1];
+        var todo2 = todoDict[id2];
+
+        if (todo2.weight > todo1.weight) {
+            return 1;
+        } else if (todo2.weight < todo1.weight) {
+            return -1;
+        } else {
+            return 0;
+        }
+    };
+
+    var allTodo = {};
+    for(var t in todos1) {
+        var todo = todos1[t];
+
+        if (!todo.del && !todo.parent) {
+            rootIdList.push(todo.id);
+        }
+
+        allTodo[todo.id] = {todo:todo};
+    }
+
+    //初始化
+    for (var r in rootIdList) {
+        var id = rootIdList[r];
+        initTodo_r(id);
+    }
+
+    //估算时间/重要性
+    for (var r in rootIdList) {
+        var id = rootIdList[r];
+        var todoInfo = todoDict[id];
+        var todo = todoInfo.todo;
+
+        todoInfo.estTime = estimateTime_r(id);
+        todoInfo.importance = todo.importance ? todo.importance * 1000 : 1000;
+        calcImportance_r(id);
+    }
+
+    //计算权重
+    for (var id in todoDict) {
+        var todoInfo = todoDict[id];
+        todoInfo.weight = todoInfo.importance / todoInfo.estTime;
+    }
+
+    //按权重遍历树木
+    rootIdList.sort(sortByWeight);
+    for (var r in rootIdList) {
+        var id = rootIdList[r];
+//        console.log(todoDict[id]);
+        genTask_r(id);
+    }
+//    console.log('------------------------------------------');
+
+    return todoList;
 };
 
 Tree.prototype.addTodo = function(newTodo){
@@ -249,4 +409,49 @@ Tree.prototype.closeEdit = function (action, cb) {
 
 Tree.prototype.setParent = function () {
     this.model.set('_page.settingParent', true);
+};
+
+Tree.prototype.setBeginDate = function () {
+    this.setBeginDateDialog.show();
+};
+
+Tree.prototype.getOverdue = function (todoInfo, beginDate) {
+    var now = moment().format('YYYY-MM-DD');
+    if (!beginDate) {   //没有设定开始默认今天
+        beginDate = now;
+    }
+    var due = moment(beginDate);
+    var days = Math.floor(todoInfo.totalTime / 9);
+    var weekends = [7];
+
+    //从beginDate开始加天数，跳过周末
+    var dueDay = due.days();
+    var totalDays = 0;
+    while(days>0) {
+        ++dueDay;
+        ++totalDays;
+        if (dueDay>7) {
+            dueDay = 1;
+        }
+        if (weekends.indexOf(dueDay)<0) {
+            --days;
+        }
+    }
+
+    due.add(days, 'days');
+    var overdue = due.diff(now, 'days');
+    console.log(overdue);
+    return overdue;
+};
+
+Tree.prototype.lessThan = function(a,b) {
+    return b<a;
+};
+
+Tree.prototype.lessThanHack = function(a,b,hack) {
+    return b<a;
+};
+
+Tree.prototype.equalHack = function(a,b,hack) {
+    return a==b;
 };

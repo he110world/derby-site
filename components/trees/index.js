@@ -26,6 +26,10 @@ Tree.prototype.init = function (model) {
 
         var estimateTime_r = function (id) {
             var todoInfo = todoDict[id];
+            if (!todoInfo) {
+                console.log(id);
+                return 1;
+            }
             var todo = todoInfo.todo;
             if (todo.children.length == 0) {
                 var estTime = parseInt(todo.estTime) || 1;
@@ -290,18 +294,23 @@ Tree.prototype.delNode = function(nodeId) {
 };
 
 Tree.prototype.delAllChildren = function (nodeId) {
-    var model = this.model.root;
-    var node = model.get(todoName+'.'+nodeId);
-
-    //所有子节点的父节点=null
-    for(var cid in node.children) {
-        var path = todoName+'.'+node.children[cid];
-        model.set(path + '.parent', null);
-        model.set(path + '.del', true);
-    }
+    var model = this.model;//.root;
+    var node = model.get('todos2'+'.'+nodeId);
 
     //当前节点的子节点=[]
-    model.set(todoName+'.'+nodeId+'.children', []);
+    model.set('todos2'+'.'+nodeId+'.children', []);
+
+    console.log(nodeId);
+    //所有子节点的父节点=null
+    for(var cid in node.children) {
+        var path = 'todos2'+'.'+node.children[cid];
+        console.log(path);
+        model.set(path + '.parent', null);
+        console.log('fuck');
+        model.set(path + '.del', true);
+        console.log('shit');
+    }
+
 };
 
 Tree.prototype.isOverdue = function (todoInfo) {
@@ -489,13 +498,17 @@ Tree.prototype.getTodoStyle = function(todoList, nodeId) {
     for(var t in todoList) {
         var todoInfo = todoList[t];
         if (todoInfo.todo.id==nodeId) {
-            var due = this.getOverdue(todoInfo, beginDate);
-            if (due<=0) {
-                return 'background: #ff892a; color:white;';
-            } else if (due<4) {
-                return 'background: #cf126e; color:white;';
+            if (todoInfo.todo.finished) {
+                return 'background: #00a855; opacity: 0.6; color:white;'
             } else {
-                return 'border: 1px solid #32aefd;';
+                var due = this.getOverdue(todoInfo, beginDate);
+                if (due<=0) {
+                    return 'background: #cf126e; opacity: 0.6; color:white;';
+                } else if (due<4) {
+                    return 'background: #ff892a; opacity: 0.6; color:white;';
+                } else {
+                    return 'border: 1px solid #32aefd;';
+                }
             }
         }
     }

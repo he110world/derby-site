@@ -7,13 +7,13 @@ Preferenes.prototype.view = __dirname;
 
 Preferenes.prototype.create = function (model, dom) {
   setPreferences(model);
-}
+};
 
 Preferenes.prototype.change = function(lang, e) {
   localStorage.setItem('lang', lang);
   setPreferences(this.model);
   e.preventDefault()
-}
+};
 
 function setPreferences(model) {
   var lang = localStorage.getItem('lang') || 'js';

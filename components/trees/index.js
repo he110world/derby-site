@@ -9,10 +9,166 @@ Tree.prototype.view = __dirname;
 var todoName;
 
 Tree.prototype.init = function (model) {
+    var self = this;
     todoName = model.root.get('$render.params.name');
     model.ref('todos1', model.root.query(todoName, {}));
     model.ref('todos2', model.root.at(todoName));
     model.ref('_page.beginDate', model.root.at('tree_config__.'+todoName+'.beginDate'));
+
+    var gettodocount = 0;
+    var getTodoList = function(todos1) {
+        ++gettodocount;
+        console.log(gettodocount);
+        var todoList = [];
+        var rootIdList = [];
+        var todoDict = {};
+        var totalTime = 0;
+
+        var estimateTime_r = function (id) {
+            var todoInfo = todoDict[id];
+            var todo = todoInfo.todo;
+            if (todo.children.length == 0) {
+                var estTime = parseInt(todo.estTime) || 1;
+                todoInfo.estTime = estTime;
+                return estTime;
+            }
+
+            var allTime = 0;
+            for (var c in todo.children) {
+                var cid = todo.children[c];
+                allTime += parseInt(estimateTime_r(cid));
+            }
+            todoInfo.estTime = allTime;
+            return allTime;
+        };
+
+        var calcImportance_r = function (id) {
+            var todoInfo = todoDict[id];
+            var todo = todoInfo.todo;
+            var childrenTotal = 0;
+
+            if (todo.children.length>0) {
+                for (var c in todo.children) {
+                    var childInfo = todoDict[todo.children[c]];
+                    childrenTotal += childInfo.todo.importance || 1;
+                }
+
+                var k = todoInfo.importance / childrenTotal;
+                for (var c in todo.children) {
+                    var cid = todo.children[c];
+                    var childInfo = todoDict[cid];
+                    var imp = childInfo.todo.importance || 1;
+                    childInfo.importance = Math.ceil(k * imp);
+
+                    calcImportance_r(cid);
+                }
+            }
+        };
+
+        var genTask_r = function (id) {
+            var children = [];
+            var todoInfo = todoDict[id];
+            var todo = todoInfo.todo;
+
+            if (todo.type == '任务') {
+                totalTime += parseInt(todo.estTime) || 1;
+                todoInfo.totalTime = totalTime;
+                todoList.push(todoInfo);
+            }
+
+            var todoChildren = todo.children;
+            if (todoChildren.length>0) {
+                for(var c in todoChildren) {
+                    children.push(todoChildren[c]);
+                }
+                children.sort(sortByWeight);
+
+                for(var c in children) {
+                    genTask_r(children[c]);
+                }
+            }
+        };
+
+        var initTodo_r = function (id) {
+            //var todoInfo = allTodo[id];
+            //var todo = todoInfo.todo;
+            var todo = self.model.get('todos2.'+id);
+            if (!todo.del) {
+                todoDict[id] = {todo:todo};
+
+                for (var c in todo.children) {
+                    var cid = todo.children[c];
+                    initTodo_r(cid);
+                }
+            }
+        };
+
+        var sortByWeight = function (id1, id2) {
+            var todo1 = todoDict[id1];
+            var todo2 = todoDict[id2];
+
+            if (todo2.weight > todo1.weight) {
+                return 1;
+            } else if (todo2.weight < todo1.weight) {
+                return -1;
+            } else {
+                return 0;
+            }
+        };
+
+        //var allTodo = {};
+        for(var t in todos1) {
+            var todo = todos1[t];
+
+            if (!todo.del && !todo.parent) {
+                rootIdList.push(todo.id);
+            }
+
+            //allTodo[todo.id] = {todo:todo};
+        }
+
+        //初始化
+        for (var r in rootIdList) {
+            var id = rootIdList[r];
+            initTodo_r(id);
+        }
+
+        //估算时间/重要性
+        for (var r in rootIdList) {
+            var id = rootIdList[r];
+            var todoInfo = todoDict[id];
+            var todo = todoInfo.todo;
+
+            todoInfo.estTime = estimateTime_r(id);
+            todoInfo.importance = todo.importance ? todo.importance * 1000 : 1000;
+            calcImportance_r(id);
+        }
+
+        //计算权重
+        for (var id in todoDict) {
+            var todoInfo = todoDict[id];
+            todoInfo.weight = todoInfo.importance / todoInfo.estTime;
+        }
+
+        //按权重遍历树木
+        rootIdList.sort(sortByWeight);
+        for (var r in rootIdList) {
+            var id = rootIdList[r];
+            genTask_r(id);
+        }
+        //this.model.set('_page.todoList', todoList);
+        return todoList;
+    };
+
+    model.subscribe(todoName, function() {
+        console.log(1);
+        //self.getTodoList(model.get('todos1'));
+        model.fn('getTodoList', getTodoList);
+        console.log(2);
+        model.start('_page.todoList', 'todos1', 'getTodoList');
+        console.log(3);
+    });
+
 };
 
 Tree.prototype.addRoot = function(text){
@@ -153,148 +309,6 @@ Tree.prototype.isOverdue = function (todoInfo) {
     return false;
 };
 
-Tree.prototype.getTodoList = function(todos1) {
-    var todoList = [];
-    var rootIdList = [];
-    var todoDict = {};
-    var totalTime = 0;
-    var self = this;
-
-    var estimateTime_r = function (id) {
-        var todoInfo = todoDict[id];
-        var todo = todoInfo.todo;
-        if (todo.children.length == 0) {
-            var estTime = parseInt(todo.estTime) || 1;
-            todoInfo.estTime = estTime;
-            return estTime;
-        }
-
-        var allTime = 0;
-        for (var c in todo.children) {
-            var cid = todo.children[c];
-            allTime += parseInt(estimateTime_r(cid));
-        }
-        todoInfo.estTime = allTime;
-        return allTime;
-    };
-
-    var calcImportance_r = function (id) {
-        var todoInfo = todoDict[id];
-        var todo = todoInfo.todo;
-        var childrenTotal = 0;
-
-        if (todo.children.length>0) {
-            for (var c in todo.children) {
-                var childInfo = todoDict[todo.children[c]];
-                childrenTotal += childInfo.todo.importance || 1;
-            }
-
-            var k = todoInfo.importance / childrenTotal;
-            for (var c in todo.children) {
-                var cid = todo.children[c];
-                var childInfo = todoDict[cid];
-                var imp = childInfo.todo.importance || 1;
-                childInfo.importance = Math.ceil(k * imp);
-
-                calcImportance_r(cid);
-            }
-        }
-    };
-
-    var genTask_r = function (id) {
-        var children = [];
-        var todoInfo = todoDict[id];
-        var todo = todoInfo.todo;
-
-        if (todo.type == '任务') {
-            totalTime += parseInt(todo.estTime) || 1;
-            todoInfo.totalTime = totalTime;
-            todoList.push(todoInfo);
-        }
-
-        var todoChildren = todo.children;
-        if (todoChildren.length>0) {
-            for(var c in todoChildren) {
-                children.push(todoChildren[c]);
-            }
-            children.sort(sortByWeight);
-
-            for(var c in children) {
-                genTask_r(children[c]);
-            }
-        }
-    };
-
-    var initTodo_r = function (id) {
-        //var todoInfo = allTodo[id];
-        //var todo = todoInfo.todo;
-        var todo = self.model.get('todos2.'+id);
-        if (!todo.del) {
-            todoDict[id] = {todo:todo};
-
-            for (var c in todo.children) {
-                var cid = todo.children[c];
-                initTodo_r(cid);
-            }
-        }
-    };
-
-    var sortByWeight = function (id1, id2) {
-        var todo1 = todoDict[id1];
-        var todo2 = todoDict[id2];
-
-        if (todo2.weight > todo1.weight) {
-            return 1;
-        } else if (todo2.weight < todo1.weight) {
-            return -1;
-        } else {
-            return 0;
-        }
-    };
-
-    //var allTodo = {};
-    for(var t in todos1) {
-        var todo = todos1[t];
-
-        if (!todo.del && !todo.parent) {
-            rootIdList.push(todo.id);
-        }
-
-        //allTodo[todo.id] = {todo:todo};
-    }
-
-    //初始化
-    for (var r in rootIdList) {
-        var id = rootIdList[r];
-        initTodo_r(id);
-    }
-
-    //估算时间/重要性
-    for (var r in rootIdList) {
-        var id = rootIdList[r];
-        var todoInfo = todoDict[id];
-        var todo = todoInfo.todo;
-
-        todoInfo.estTime = estimateTime_r(id);
-        todoInfo.importance = todo.importance ? todo.importance * 1000 : 1000;
-        calcImportance_r(id);
-    }
-
-    //计算权重
-    for (var id in todoDict) {
-        var todoInfo = todoDict[id];
-        todoInfo.weight = todoInfo.importance / todoInfo.estTime;
-    }
-
-    //按权重遍历树木
-    rootIdList.sort(sortByWeight);
-    for (var r in rootIdList) {
-        var id = rootIdList[r];
-        genTask_r(id);
-    }
-    this.model.set('_page.todoList', todoList);
-    return todoList;
-};
 
 Tree.prototype.addTodo = function(newTodo){
 

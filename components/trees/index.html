@@ -125,7 +125,7 @@
 
 <todo-list:>
     <ul class="todo-list">
-        {{each getTodoList(todos1) as #todo}}
+        {{each _page.todoList as #todo}}
         <view name="todo-item" todo={{#todo}} due="{{getOverdue(#todo,_page.beginDate)}}" finished="todos2[#todo.todo.id].finished"></view>
         {{/each}}
     </ul>

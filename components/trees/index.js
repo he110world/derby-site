@@ -158,6 +158,7 @@ Tree.prototype.getTodoList = function(todos1) {
     var rootIdList = [];
     var todoDict = {};
     var totalTime = 0;
+    var self = this;
 
     var estimateTime_r = function (id) {
         var todoInfo = todoDict[id];
@@ -168,13 +169,13 @@ Tree.prototype.getTodoList = function(todos1) {
             return estTime;
         }
 
-        var totalTime = 0;
+        var allTime = 0;
         for (var c in todo.children) {
             var cid = todo.children[c];
-            totalTime += estimateTime_r(cid);
+            allTime += parseInt(estimateTime_r(cid));
         }
-        todoInfo.estTime = totalTime;
-        return totalTime;
+        todoInfo.estTime = allTime;
+        return allTime;
     };
 
     var calcImportance_r = function (id) {
@@ -206,7 +207,7 @@ Tree.prototype.getTodoList = function(todos1) {
         var todo = todoInfo.todo;
 
         if (todo.type == '任务') {
-            totalTime += todo.estTime || 1;
+            totalTime += parseInt(todo.estTime) || 1;
             todoInfo.totalTime = totalTime;
             todoList.push(todoInfo);
         }
@@ -225,10 +226,11 @@ Tree.prototype.getTodoList = function(todos1) {
     };
 
     var initTodo_r = function (id) {
-        var todoInfo = allTodo[id];
-        var todo = todoInfo.todo;
+        //var todoInfo = allTodo[id];
+        //var todo = todoInfo.todo;
+        var todo = self.model.get('todos2.'+id);
         if (!todo.del) {
-            todoDict[id] = todoInfo;
+            todoDict[id] = {todo:todo};
 
             for (var c in todo.children) {
                 var cid = todo.children[c];
@@ -250,7 +252,7 @@ Tree.prototype.getTodoList = function(todos1) {
         }
     };
 
-    var allTodo = {};
+    //var allTodo = {};
     for(var t in todos1) {
         var todo = todos1[t];
 
@@ -258,7 +260,7 @@ Tree.prototype.getTodoList = function(todos1) {
             rootIdList.push(todo.id);
         }
 
-        allTodo[todo.id] = {todo:todo};
+        //allTodo[todo.id] = {todo:todo};
     }
 
     //初始化
@@ -288,11 +290,9 @@ Tree.prototype.getTodoList = function(todos1) {
     rootIdList.sort(sortByWeight);
     for (var r in rootIdList) {
         var id = rootIdList[r];
-//        console.log(todoDict[id]);
         genTask_r(id);
     }
-//    console.log('------------------------------------------');
-
+    this.model.set('_page.todoList', todoList);
     return todoList;
 };
 
@@ -437,11 +437,25 @@ Tree.prototype.getOverdue = function (todoInfo, beginDate) {
             --days;
         }
     }
-
-    due.add(days, 'days');
+    due.add(totalDays, 'days');
     var overdue = due.diff(now, 'days');
-    console.log(overdue);
-    return overdue;
+    if (overdue>0) {
+        var workdue = 0;
+        var workday = moment().days();
+
+        //去掉now到overdue之间的工作日
+        for(var i=0; i<overdue; i++) {
+            if (weekends.indexOf(workday++)<0) {
+                ++workdue;
+            }
+            if (workday>7) {
+                workday = 1;
+            }
+        }
+        return workdue;
+    } else {
+        return overdue;
+    }
 };
 
 Tree.prototype.lessThan = function(a,b) {
@@ -454,4 +468,22 @@ Tree.prototype.lessThanHack = function(a,b,hack) {
 
 Tree.prototype.equalHack = function(a,b,hack) {
     return a==b;
+};
+
+Tree.prototype.getTodoStyle = function(todoList, nodeId) {
+    var beginDate = this.model.get('_page.beginDate');
+    for(var t in todoList) {
+        var todoInfo = todoList[t];
+        if (todoInfo.todo.id==nodeId) {
+            var due = this.getOverdue(todoInfo, beginDate);
+            if (due<=0) {
+                return 'background: #ff892a; color:white;';
+            } else if (due<4) {
+                return 'background: #cf126e; color:white;';
+            } else {
+                return 'border: 1px solid #32aefd;';
+            }
+        }
+    }
+    return "";
 };

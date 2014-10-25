@@ -103,9 +103,16 @@
 
 <node:>
     <!--<a on-click="addChild(@n.id,'fuck')">-->
-    <a on-click="showEdit(@n.id)">
-        {{@n.text}}
-    </a>
+    {{if @n.type=='任务'}}
+        <a on-click="showEdit(@n.id)" style="{{getTodoStyle(_page.todoList,@n.id)}}">
+            {{@n.text}}
+        </a>
+    {{else}}
+        <a on-click="showEdit(@n.id)">
+            {{@n.text}}
+        </a>
+    {{/}}
+
     {{if hasChildren(todos1, @n.id)}}
     <ul>
         {{each @n.children as #childnode}}
@@ -137,19 +144,19 @@
           </i>
             {{if lessThanHack(0,@due,_page.beginDate)}}
                   <span class="label label-important">
-                    Overdue
+                    逾期
                   </span>
             {{else if equalHack(0,@due,_page.beginDate)}}
                    <span class="label label-important">
-                    Today
+                    今天
                   </span>
             {{else if lessThanHack(4,@due,_page.beginDate)}}
                   <span class="label label-warning">
-                    Due in {{@due}} days
+                    剩余{{@due}}天
                   </span>
             {{else}}
                   <span class="label label-info">
-                    Upcoming
+                    即将到来
                   </span>
             {{/}}
         </span>

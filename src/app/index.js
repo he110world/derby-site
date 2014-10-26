@@ -5,6 +5,9 @@ var app = module.exports = derby.createApp('site', __filename);
 
 if (!derby.util.isProduction) global.app = app;
 
+app.use(require('derby-login/components/notAuth'));
+app.use(require('derby-login/components/auth'));
+
 app.serverUse(module, 'derby-markdown', markedOptions);
 app.serverUse(module, 'derby-stylus');
 app.loadViews(path.join(__dirname, '/../../views/app'));
@@ -88,12 +91,48 @@ app.get('/:name/:sub?', function (page, model, params, next) {
   var name = params.name;
   var sub = params.sub;
   var viewName = sub ? name + ':' + sub : name;
-
   if (name === 'auth') return next();
 //  if (name === 'trees') return next();
 
   page.render(viewName);
 });
+app.get('/confirmregistration', function(page, model){
+    page.render('confirmregistration');
+});
+
+app.get('/recoverpassword', function(page, model, params){
+    var secret = params.query.secret;
+    model.set('_page.secret', secret);
+    page.render('recoverpassword');
+});
+
+app.get('/login', function(page, model){
+    page.render('login');
+});
+
+app.proto.passwordChanged = function(data) {
+    app.model.set('_page.passwordChanged', true);
+};
+
+app.proto.recoveryEmailSent = function(data) {
+    alert('Recovery email is sent to ' + data.email);
+};
+
+app.get('/emailchangeconfirmed', function(page, model){
+    page.render('emailchangeconfirmed');
+});
+
+app.get('/registrationconfirmed', function(page, model){
+    page.render('registrationconfirmed');
+});
+
+app.proto.emailChanged = function(data) {
+    alert('Confirmation email is sent to ' + data.email);
+};
+
+app.proto.passwordChanged = function(data) {
+    alert('Password is changed');
+};
 
 app.on('model', function (model) {
   model.fn('all', function (doc) {

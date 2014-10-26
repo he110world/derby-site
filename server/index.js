@@ -2,9 +2,10 @@ var express = require('express');
 var session = require('express-session');
 var serveStatic = require('serve-static');
 var compression = require('compression');
+var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var favicon = require('serve-favicon');
-var bodyParser = require('body-parser');
+var bodyParser = require('body-parser');    //derby-login要用
 var derbyLogin = require('derby-login');
 var coffeeify = require('coffeeify');
 var hooks = require('./hooks');
@@ -40,6 +41,8 @@ var expressApp = module.exports = express()
   .use(compression())
   .use(serveStatic(publicDir))
   .use(cookieParser(process.env.SESSION_COOKIE))
+  .use(bodyParser.json())
+  .use(bodyParser.urlencoded({extended: true}))
   .use(session({
     secret: process.env.SESSION_SECRET,
     store: sessionStore

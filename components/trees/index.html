@@ -104,7 +104,7 @@
 <node:>
     <!--<a on-click="addChild(@n.id,'fuck')">-->
     {{if @n.type=='任务'}}
-        <a on-click="showEdit(@n.id)" style="{{getTodoStyle(_page.todoList,@n.id)}}">
+        <a on-click="showEdit(@n.id)" style="{{getTodoStyle(_page.todoList,@n.id,_page.beginDate)}}">
             {{@n.text}}
         </a>
     {{else}}

@@ -499,15 +499,15 @@ Tree.prototype.getTodoStyle = function(todoList, nodeId) {
         var todoInfo = todoList[t];
         if (todoInfo.todo.id==nodeId) {
             if (todoInfo.todo.finished) {
-                return 'background: #00a855; opacity: 0.6; color:white;'
+                return 'background: #00a855; color:white;'
             } else {
                 var due = this.getOverdue(todoInfo, beginDate);
                 if (due<=0) {
-                    return 'background: #cf126e; opacity: 0.6; color:white;';
+                    return 'background: #cf126e; color:white;';
                 } else if (due<4) {
-                    return 'background: #ff892a; opacity: 0.6; color:white;';
+                    return 'background: #ff892a; color:white;';
                 } else {
-                    return 'border: 1px solid #32aefd;';
+                    return 'background: #87CEEB; color:white;';//'border: 1px solid #32aefd;';
                 }
             }
         }

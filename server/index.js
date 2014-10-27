@@ -2,7 +2,6 @@ var express = require('express');
 var session = require('express-session');
 var serveStatic = require('serve-static');
 var compression = require('compression');
-var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var favicon = require('serve-favicon');
 var bodyParser = require('body-parser');    //derby-login要用

@@ -8,14 +8,14 @@
                 {{if #root._session.loggedIn}}
                 <view name="trees"></view>
                 {{else}}
-                请 <a href="/auth/github">登录</a>
+                请 <a href="/login">登录</a>
                 {{/if}}
             </pane>
             <pane title="TODO列表">
                 {{if #root._session.loggedIn}}
                 <view name="todo-list"></view>
                 {{else}}
-                请 <a href="/auth/github">登录</a>
+                请 <a href="/login">登录</a>
                 {{/if}}
             </pane>
         </tabs>
@@ -44,6 +44,7 @@
 
             <!--<action class="btn-primary" name='ok' autofocus default>确定</action>-->
             <!--<action name='cancel'>取消</action>-->
+            <action value="{{addBrother(_page.editNode.id)}}">兄+</action>
             <action value="{{insertParent(_page.editNode.id)}}">上+</action>
             <action value="{{insertChild(_page.editNode.id)}}">下+</action>
             <action value="{{addChild(_page.editNode.id)}}">子+</action>
@@ -108,7 +109,7 @@
             {{@n.text}}
         </a>
     {{else}}
-        <a on-click="showEdit(@n.id)">
+        <a on-click="showEdit(@n.id)" style="{{getFeatureStyle(_page.todoList, @n.id,_page.beginDate)}}">
             {{@n.text}}
         </a>
     {{/}}
@@ -143,7 +144,7 @@
           <i class="fa fa-fw {{if lessThanHack(1,@due)}}fa-clock-o{{/}}">
           </i>
             {{if lessThanHack(0,@due,_page.beginDate)}}
-                  <span class="label label-important">
+                  <span class="label label-warning">
                     逾期
                   </span>
             {{else if equalHack(0,@due,_page.beginDate)}}
@@ -151,11 +152,11 @@
                     今天
                   </span>
             {{else if lessThanHack(4,@due,_page.beginDate)}}
-                  <span class="label label-warning">
+                  <span class="label label-info">
                     剩余{{@due}}天
                   </span>
             {{else}}
-                  <span class="label label-info">
+                  <span class="label label-unimportant">
                     即将到来
                   </span>
             {{/}}

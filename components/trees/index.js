@@ -54,7 +54,11 @@ Tree.prototype.init = function (model) {
             if (todo.children.length>0) {
                 for (var c in todo.children) {
                     var childInfo = todoDict[todo.children[c]];
-                    childrenTotal += childInfo.todo.importance || 1;
+                    var imp = childInfo.todo.importance || 1;
+                    if (imp > 5) {
+                        imp = 5;
+                    }
+                    childrenTotal += imp;
                 }
 
                 var k = todoInfo.importance / childrenTotal;
@@ -62,6 +66,9 @@ Tree.prototype.init = function (model) {
                     var cid = todo.children[c];
                     var childInfo = todoDict[cid];
                     var imp = childInfo.todo.importance || 1;
+                    if (imp > 5) {
+                        imp = 5;
+                    }
                     childInfo.importance = Math.ceil(k * imp);
 
                     calcImportance_r(cid);
@@ -205,6 +212,19 @@ Tree.prototype.getNode = function(todo, id) {
 
 Tree.prototype.editNode = function(id) {
     console.log('fuck');
+};
+
+Tree.prototype.addBrother = function(id, text) {
+    var model = this.model.root;
+    var node = model.get(todoName+'.'+id);
+    if (!node) {
+        return;
+    }
+    if (node.parent) {
+        this.addChild(node.parent, text)
+    } else {
+        this.addRoot(text);
+    }
 };
 
 Tree.prototype.addChild = function(parentId, text) {
@@ -415,7 +435,7 @@ Tree.prototype.showEdit = function (todoId) {
         this.model.set('_page.settingParent', false);
     } else {
         this.model.set('_page.nodeTypes', ['功能','任务']);
-        this.model.set('_page.featureImportances', [1,2,3,4,5,6,7,8,9,10]);
+        this.model.set('_page.featureImportances', [1,2,3,4,5]);
         this.model.ref('_page.editNode', this.model.root.at(todoName+'.'+todoId));
         this.modalDialog.show();
     }
@@ -493,21 +513,60 @@ Tree.prototype.equalHack = function(a,b,hack) {
     return a==b;
 };
 
+Tree.prototype.getFeatureStyle = function(todoList, nodeId) {
+    var todo = this.model.get('todos2.'+nodeId);
+    if (!todo) {
+        return "";
+    }
+    var imp = todo.importance;
+    if (!imp) {
+        imp = 1;
+    }
+    if (imp > 5) {
+        imp = 5;
+    }
+    //var k = imp / 10.0;
+    var r=0, g= 0, b=0;
+    if (imp <= 1) {
+        r = g = b = 80;
+    } else if (imp <= 2) {
+        r = 50;
+        g = 200;
+        b = 0;
+    } else if (imp <= 3) {
+        g = 150;
+        b = 255;
+        r = 0;
+    } else if (imp <= 4) {
+        r = 100;
+        b = 255;
+        g = 0;
+    } else if (imp <= 5) {
+        r = 255;
+        g = 128;
+        b = 50;
+    }
+
+    return 'border: ' + 2 + 'px solid rgb(' + r + ',' + g + ','+b+');';
+};
+
 Tree.prototype.getTodoStyle = function(todoList, nodeId) {
     var beginDate = this.model.get('_page.beginDate');
     for(var t in todoList) {
         var todoInfo = todoList[t];
         if (todoInfo.todo.id==nodeId) {
             if (todoInfo.todo.finished) {
-                return 'background: #00a855; color:white;'
+                return 'background: #aaaaaa; color:white;'
             } else {
                 var due = this.getOverdue(todoInfo, beginDate);
-                if (due<=0) {
-                    return 'background: #cf126e; color:white;';
+                if (due<0) {
+                    return 'background: #ff892a; color:white;'; //橙
+                } else if (due==0) {
+                    return 'background: rgb(100,0,255); color:white;'; //紫
                 } else if (due<4) {
-                    return 'background: #ff892a; color:white;';
+                    return 'background: #87CEEB; color:white;'; //蓝
                 } else {
-                    return 'background: #87CEEB; color:white;';//'border: 1px solid #32aefd;';
+                    return 'background: #00a855; color:white;'; //绿
                 }
             }
         }

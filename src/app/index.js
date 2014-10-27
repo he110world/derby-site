@@ -132,6 +132,39 @@ app.proto.passwordChanged = function(data) {
     alert('Password is changed');
 };
 
+app.proto.addTree = function() {
+    this.addTreeDialog.show();
+};
+
+app.proto.validateTreeName = function (name) {
+    if (!name || name=='确定') {
+        this.model.set('_page.dangerMsg', '名字不能为空');
+        return false;
+    }
+    var treeNames = this.model.get('tree_names.names');
+    for (var t in treeNames) {
+        if (name == treeNames[t]) {
+            this.model.set('_page.dangerMsg', '名字已存在');
+            return false;
+        }
+    }
+    this.model.set('_page.dangerMsg', null);
+    return true;
+};
+
+//on-hide="xxx" => model.hide()时调用xxx(action,cancel)
+app.proto.doAddTree = function(name, cancel) {
+    if (name=='backdrop' || name=='close') {
+        return;
+    }
+    if (!this.validateTreeName(name)) {
+        cancel();
+        return;
+    }
+    this.model.set('_page.dangerMsg', null);
+    this.model.push('tree_names.names', name);
+};
+
 app.on('model', function (model) {
   model.fn('all', function (doc) {
     return true;

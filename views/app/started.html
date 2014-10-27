@@ -9,10 +9,55 @@
   </div>-->
 
   <!--<view name="markdown"/>-->
-    <ul>
+    <!--<ul>
         {{each _page.tree_names as #name}}
         <li>
             <a href="/trees/{{#name}}">{{#name}}</a>
         </li>
         {{/}}
-    </ul>
+    </ul>-->
+
+
+    <div>
+        <h1>{{_page.tree_names.length}}棵树</h1>
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>名称</th>
+                <!--<th>开始日期</th>-->
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{each _page.tree_names as #name}}
+            <tr>
+                <td>
+                    <a href="/trees/{{#name}}">{{#name}}</a>
+                </td>
+                <td>
+                    <button class="btn btn-danger" on-click="delTree(#name)">删除</button>
+                </td>
+            </tr>
+            {{/}}
+            </tbody>
+        </table>
+
+        <button class="btn btn-primary" on-click="addTree()">新建树</button>
+    </div>
+    <div>
+        <modal as="addTreeDialog" on-hide="doAddTree()">
+            <title>新建一棵树</title>
+            <div>
+                <input value="{{_page.newTreeName}}" placeholder="输入名称"/>
+            </div>
+
+            {{if !validateTreeName(_page.newTreeName)}}
+            <br>
+            <div class="alert alert-danger">{{_page.dangerMsg}}</div>
+            {{/}}
+
+            <action class="btn btn-primary" value="{{_page.newTreeName}}">确定</action>
+
+        </modal>
+    </div>
+

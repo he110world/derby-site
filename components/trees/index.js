@@ -15,10 +15,10 @@ Tree.prototype.init = function (model) {
     model.ref('todos2', model.root.at(todoName));
     model.ref('_page.beginDate', model.root.at('tree_config__.'+todoName+'.beginDate'));
 
-    var gettodocount = 0;
+//    var gettodocount = 0;
     var getTodoList = function(todos1) {
-        ++gettodocount;
-        console.log(gettodocount);
+//        ++gettodocount;
+//        console.log(gettodocount);
         var todoList = [];
         var rootIdList = [];
         var todoDict = {};

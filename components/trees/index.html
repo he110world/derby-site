@@ -64,10 +64,24 @@
         </select>
     </label>
 
+    <br>
+    <br>
+    <label>
+        说明 &nbsp;
+        <textarea rows="4" cols="70">{{_page.editNode.desc}}</textarea>
+    </label>
+
 <task-dlg:>
     <label>
         耗时（小时）&nbsp;
-        <input value="{{_page.editNode.estTime}}" placeholder="输入时间（小时）">
+        <input type="number" min="1" value="{{_page.editNode.estTime}}" placeholder="输入时间（小时）">
+    </label>
+    <br>
+    <br>
+
+    <label>
+        说明 &nbsp;
+        <textarea rows="4" cols="70">{{_page.editNode.desc}}</textarea>
     </label>
 
 <trees:>

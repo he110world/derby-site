@@ -15,10 +15,7 @@ Tree.prototype.init = function (model) {
     model.ref('todos2', model.root.at(todoName));
     model.ref('_page.beginDate', model.root.at('tree_config__.'+todoName+'.beginDate'));
 
-//    var gettodocount = 0;
     var getTodoList = function(todos1) {
-//        ++gettodocount;
-//        console.log(gettodocount);
         var todoList = [];
         var rootIdList = [];
         var todoDict = {};
@@ -92,7 +89,8 @@ Tree.prototype.init = function (model) {
                 for(var c in todoChildren) {
                     children.push(todoChildren[c]);
                 }
-                children.sort(sortByWeight);
+                //children.sort(sortByWeight);
+                children.sort(sortByImportance);
 
                 for(var c in children) {
                     genTask_r(children[c]);
@@ -110,6 +108,25 @@ Tree.prototype.init = function (model) {
                 for (var c in todo.children) {
                     var cid = todo.children[c];
                     initTodo_r(cid);
+                }
+            }
+        };
+
+        var sortByImportance = function (id1, id2) {
+            var todo1 = todoDict[id1];
+            var todo2 = todoDict[id2];
+
+            if (todo2.importance > todo1.importance) {
+                return 1;
+            } else if (todo2.importance < todo1.importance) {
+                return -1;
+            } else {    //重要性相同优先考虑时间短的
+                if (todo2.estTime < todo1.estTime) {
+                    return 1;
+                } else if (todo2.estTime > todo1.estTime) {
+                    return -1;
+                } else {
+                    return 0;
                 }
             }
         };
@@ -156,13 +173,14 @@ Tree.prototype.init = function (model) {
         }
 
         //计算权重
-        for (var id in todoDict) {
-            var todoInfo = todoDict[id];
-            todoInfo.weight = todoInfo.importance / todoInfo.estTime;
-        }
+//        for (var id in todoDict) {
+//            var todoInfo = todoDict[id];
+//            todoInfo.weight = todoInfo.importance / todoInfo.estTime;
+//        }
 
         //按权重遍历树木
-        rootIdList.sort(sortByWeight);
+        //rootIdList.sort(sortByWeight);
+        rootIdList.sort(sortByImportance);
         for (var r in rootIdList) {
             var id = rootIdList[r];
             genTask_r(id);
@@ -499,6 +517,27 @@ Tree.prototype.getOverdue = function (todoInfo, beginDate) {
     } else {
         return overdue;
     }
+};
+
+Tree.prototype.getType_r = function (nodeId) {
+    var model = this.model.root;
+    var node = model.get(todoName + '.' + nodeId);
+    if (!node.type) {   //没有类型则根据父类设置类型
+        if (node.parent) {
+            return this.getType_r(node.parent);
+        } else {    //根节点均为功能
+            return '功能';
+        }
+    } else {
+        return node.type;
+    }
+};
+
+Tree.prototype.getType = function (nodeId) {
+    if (!nodeId) {
+        return '功能';
+    }
+    return this.getType_r(nodeId);
 };
 
 Tree.prototype.lessThan = function(a,b) {

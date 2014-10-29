@@ -165,6 +165,33 @@ app.proto.doAddTree = function(name, cancel) {
     this.model.push('tree_names.names', name);
 };
 
+app.proto.delTree = function (name) {
+    this.model.set('_page.delTreeName', name);
+    this.delTreeDialog.show();
+};
+
+app.proto.doDelTree = function () {
+    var delName = this.model.get('_page.delTreeName');
+    if (!delName) {
+        return;
+    }
+    var treeNames = this.model.get('tree_names.names');
+    var idx = treeNames.indexOf(delName);
+    if (idx<0) {
+        return;
+    }
+    this.model.remove('tree_names.names', idx);
+    this.model.set('_page.delTreeName', null);
+};
+
+app.proto.highlight = function () {
+    this.model.set('_page.shouldHover', true);
+};
+
+app.proto.disableHighlight = function () {
+    this.model.set('_page.shouldHover', false);
+};
+
 app.on('model', function (model) {
   model.fn('all', function (doc) {
     return true;

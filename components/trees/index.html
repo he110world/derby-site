@@ -36,7 +36,7 @@
                 </select>
             </title>
 
-            {{if _page.editNode.type=='功能'}}
+            {{if getType(_page.editNode.id, _page.editNode.type)=='功能'}}
                 <view name="feature-dlg"></view>
             {{else}}
                 <view name="task-dlg"></view>
@@ -119,11 +119,11 @@
 <node:>
     <!--<a on-click="addChild(@n.id,'fuck')">-->
     {{if @n.type=='任务'}}
-        <a on-click="showEdit(@n.id)" style="{{getTodoStyle(_page.todoList,@n.id,_page.beginDate)}}">
+        <a on-click="showEdit(@n.id)" style="{{getTodoStyle(_page.todoList,@n.id,_page.beginDate,_page.editNode)}}">
             {{@n.text}}
         </a>
     {{else}}
-        <a on-click="showEdit(@n.id)" style="{{getFeatureStyle(_page.todoList, @n.id,_page.beginDate)}}">
+        <a on-click="showEdit(@n.id)" style="{{getFeatureStyle(_page.todoList, @n.id,_page.beginDate,_page.editNode)}}">
             {{@n.text}}
         </a>
     {{/}}

@@ -73,10 +73,11 @@ Tree.prototype.init = function (model) {
             }
         };
 
-        var genTask_r = function (id) {
+        var genTask_r = function (id, parentDesc) {
             var children = [];
             var todoInfo = todoDict[id];
             var todo = todoInfo.todo;
+            todoInfo.desc = parentDesc ? parentDesc + ' - ' + todo.text : todo.text;
 
             if (todo.type == '任务') {
                 totalTime += parseInt(todo.estTime) || 1;
@@ -93,8 +94,12 @@ Tree.prototype.init = function (model) {
                 children.sort(sortByImportance);
 
                 for(var c in children) {
-                    genTask_r(children[c]);
+                    genTask_r(children[c], todoInfo.desc);
                 }
+            }
+
+            if (todo.type == '任务') {
+                todoInfo.desc = parentDesc;
             }
         };
 
@@ -455,6 +460,13 @@ Tree.prototype.showEdit = function (todoId) {
         this.model.set('_page.nodeTypes', ['功能','任务']);
         this.model.set('_page.featureImportances', [1,2,3,4,5]);
         this.model.ref('_page.editNode', this.model.root.at(todoName+'.'+todoId));
+        this.model.set('_page.tempEditNode.text', this.model.get('_page.editNode.text'));
+        this.model.set('_page.tempEditNode.desc', this.model.get('_page.editNode.desc'));
+        var self = this;
+        this.modalDialog.on('hide', function() {
+            self.model.set('_page.editNode.text', self.model.get('_page.tempEditNode.text'));
+            self.model.set('_page.editNode.desc', self.model.get('_page.tempEditNode.desc'));
+        });
         this.modalDialog.show();
     }
 };

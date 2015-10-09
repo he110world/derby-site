@@ -2,6 +2,7 @@ var derby = require('derby');
 var markedOptions = require('./../../config/markedOptions');
 var path = require('path');
 var app = module.exports = derby.createApp('site', __filename);
+var marked = require('marked');
 
 if (!derby.util.isProduction) global.app = app;
 
@@ -14,9 +15,10 @@ app.loadViews(path.join(__dirname, '/../../views/app'));
 app.loadStyles(path.join(__dirname, '/../../styles/app'));
 app.component(require('../../components/chat'));
 app.component(require('../../components/trees'));
-
+app.component(require('d-textarea'));
 app.use(require('d-bootstrap'));
 app.use(require('d-datepicker'));
+app.use(require('d-quill'));
 
 //app.use(require('d-comp-palette'));
 
@@ -45,6 +47,17 @@ app.get('/chat', function (page, model) {
     page.render('chat');
   });
 });
+
+app.get('/textedit', function (page, model) {
+    model.subscribe('texteditdata', function() {
+        model.ref('_page.texteditdata', 'texteditdata.text');
+        model.start('_page.texteditdata.md', '_page.texteditdata.text', function(doc){
+            return marked(doc);
+        });
+        page.render('textedit');
+    });
+});
+
 app.get('/trees/:name', function(page, model, params, next) {
     if (params.name == 'null') {
         //next();

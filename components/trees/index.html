@@ -27,7 +27,7 @@
         </modal>
         <modal as="modalDialog">
             <title>
-                <input value="{{_page.editNode.text}}" placeholder="输入名称"/>
+                <input value="{{_page.tempEditNode.text}}" placeholder="输入名称"/>
                 &nbsp;
                 <select on-change="selectType($event)">
                     {{each _page.nodeTypes as #type}}
@@ -68,7 +68,7 @@
     <br>
     <label>
         说明 &nbsp;
-        <textarea rows="4" cols="70">{{_page.editNode.desc}}</textarea>
+        <textarea rows="4" cols="70">{{_page.tempEditNode.desc}}</textarea>
     </label>
 
 <task-dlg:>
@@ -81,7 +81,7 @@
 
     <label>
         说明 &nbsp;
-        <textarea rows="4" cols="70">{{_page.editNode.desc}}</textarea>
+        <textarea rows="4" cols="70">{{_page.tempEditNode.desc}}</textarea>
     </label>
 
 <trees:>
@@ -150,7 +150,9 @@
         <span class="list-left">
           <input class="check" type="checkbox" checked="{{todos2[@todo.todo.id].finished}}"/>            <!---->
           <span>
-            {{@todo.todo.text}}
+              {{@todo.todo.text}}
+              &nbsp;&nbsp;
+              <label style="text-align: center; color:dodgerblue;">({{@todo.desc}})</label>
           </span>
         </span>
         {{if !todos2[@todo.todo.id].finished}}
